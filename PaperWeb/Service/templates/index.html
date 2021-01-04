@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
+  <a class="navbar-brand mr-auto mr-lg-0" href="#">Paper List</a>
+  <button class="navbar-toggler p-0 border-0" type="button" data-toggle="offcanvas">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="navbar-collapse offcanvas-collapse" id="navbarsExampleDefault">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Settings</a>
+          <div class="dropdown-menu" aria-labelledby="dropdown01">
+            <a class="dropdown-item" href="#">自然语言处理</a>
+            <a class="dropdown-item" href="#">图像处理</a>
+            <a class="dropdown-item" href="#">更多...</a>
+          </div>
+      </li>
+    </ul>
+    <form class="form-inline my-2 my-lg-0">
+      <input id="search" class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">搜索</button>
+    </form>
+  </div>
+</nav>
+
+<div class="nav-scroller bg-white shadow-sm">
+  <nav class="nav nav-underline">
+    <a class="nav-link active" href="#">论文分类</a>
+    <a class="nav-link" href="#">
+      深度学习
+      <span class="badge badge-pill bg-light align-text-bottom">27</span>
+    </a>
+    <a class="nav-link" href="#">机器人</a>
+    <a class="nav-link" href="#">其他...</a>
+  </nav>
+</div>
+
+<main role="main" class="container">
+  <div class="d-flex align-items-center p-3 my-3 text-white-50 bg-purple rounded shadow-sm">
+    <img class="mr-3" src="/static/images/bootstrap-outline.svg" alt="" width="48" height="48">
+    <div class="lh-100">
+      <h6 class="mb-0 text-white lh-100">Papers</h6>
+      <small>Since 2011</small>
+    </div>
+  </div>
+
+  <div class="my-3 p-3 bg-white rounded shadow-sm">
+    <h6 class="border-bottom border-gray pb-2 mb-0">Paper List</h6>
+    <!--论文列表的内容-->
+    <div id="pagelist">
+
+    </div>
+
+
+    <small id="page" class="d-block text-right mt-3">
+      <!--a href="#">All updates</a-->
+      <!--动态添加会损失样式-->
+      <!--d-none 隐藏-->
+      <button id="upbutton" type="button" class="btn btn-primary btn-sm d-none" onclick="up(this.value)">上一页</button>
+      <button id="downbutton" type="button" class="btn btn-primary btn-sm d-none" onclick="down(this.value)">下一页</button>
+      </small>
+
+
+  </div>
+
+</main>
+
+<!-- Bootstrap 核心 JavaScript-->
+<script src="/static/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/jquery.slim.min.js"></script>
+<script src="/static/js/offcanvas.js"></script>
+<script>
+$(function () {
+
+$('[data-toggle="offcanvas"]').on("click", function(){
+  $('.offcanvas-collapse').toggleClass("open")
+})
+})
+</script>
+
+<script>
+  baseurl = "192.168.0.108"
+  index = 1
+  count = 10
+
+
+
+  up = function(index){
+      if (index != 1){
+          index = parseInt(index) - 1
+      }
+      load(index, 10)
+  }
+
+  down = function(index){
+      load(parseInt(index) + 1, 10)
+  }
+
+  showpage = function(index, has_next, data){
+      console.log("showpage running")
+      $('div#pagelist').empty()
+      var i
+      for (i=0; i<data.length; i++){
+          html = '<div class="media text-muted pt-3">\n' +
+              '        <img class="mr-3" src="/static/images/bootstrap-outline.svg" alt="" width="48" height="48">'
+              '        <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray" '+ data[i]
+              '            <strong class="d-block text-gray-dark">'+ data[i]["title"] +'</strong>\n'
+              '        </p>\n' +
+              '      </div>'
+          $('div#pagelist').append(html)
+      }
+
+      if (index > 1){
+          $('button#upbutton').removeClass("d-none")
+          $('button#upbutton').val(index)
+      }else{
+          $('button#upbutton').addClass("d-none")
+      }
+      if (has_next == 1){
+          $('button#downbutton').removeClass("d-none")
+          $('button#downbutton').val(index)
+      }else{
+          $('button#downbutton').addClass("d-none")
+      }
+  }
+
+
+  load = function(index, count){
+      url = "/papers?index=" + index + "&count=" + count
+    $.ajax({url: url,
+        success:function(result){
+            console.log(result)
+            index = result["index"]
+            has_next = result["has_next"]
+            data = result["data"]
+            if (data){
+                showpage(index, has_next, data)
+            }
+        }
+    });
+  }
+
+  load(index, count)
+
+  submit = function(){
+      author = $('input#search').val()
+      url = "papers/author?index=" + index + "&count=" + count +"&author=" + author
+      $.ajax({url: url,
+        success:function(result){
+            console.log(result)
+            index = result["index"]
+            has_next = result["has_next"]
+            data = result["data"]
+            if (data){
+                showpage(index, has_next, data)
+            }
+        }
+    });
+  }
+
+
+</script>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+      <script>window.jQuery || document.write('<script src="/static/js/jquery.slim.min.js"><\/script>')</script><script src="/static/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+        <script src="/static/js/offcanvas.js"></script></body>
+{% endblock %}
